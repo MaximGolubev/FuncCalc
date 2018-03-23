@@ -18,7 +18,7 @@ Functions = {
     'cos': {'value': math.cos, 'argNum': 1},
     'sin': {'value': math.sin, 'argNum': 1},
     'tan': {'value': math.tan, 'argNum': 1},
-    
+    'log': {'value': math.log, 'argNum': 2}
 }
 
 Delimiters = [
@@ -73,6 +73,7 @@ class Tree:
         stack = []
         result = []
         tokenList = self.expression.split()
+        prevToken = ''
         for token in tokenList:
             if str.isalpha(token) and token not in Functions or str.isdigit(token):
                 node = Node(token)
@@ -80,6 +81,10 @@ class Tree:
             elif token in Functions:
                 stack.append(token)
             elif token in Operators:
+                if prevToken is '' or prevToken is '(':
+                    node = Node(0)
+                    result.append(node)
+                    continue
                 while stack and (stack[-1] in Operators) and (
                             Operators[stack[-1]]['priority'] > Operators[token]['priority']):
                     op = stack.pop()
@@ -106,6 +111,7 @@ class Tree:
                     if not stack:
                         raise ValueError(" пропущена открывающая скобка")
                 stack.pop()
+            prevToken = token
         while stack:
             op = stack.pop()
             if op in Operators:
@@ -271,13 +277,7 @@ class Tree:
 
 
 if __name__ == "__main__":
-    f = Tree("cos ( x )")
-    g = Tree("sin ( x )")
-    y = f + g
-    u = f - g
-    n = y * u
-    i = n * n
-    print(y(3.1415))
-    print(u(3.1415))
-    print(n(3.1415))
-    print(i, " ", i(3.14150))
+    f = Tree("- x")
+    g = Tree("sin ( - x )")
+    print(f)
+    print(g(3.14 / 2))
