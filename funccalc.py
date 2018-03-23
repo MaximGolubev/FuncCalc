@@ -31,40 +31,31 @@ class Node:
         self.right = right
         self.left = left
 
-    def __add__(self, tree):
-        return Node(operator.add, self, tree)
+    def __add__(self, node):
+        return Node(operator.add, self, node)
 
-    def __sub__(self, tree):
-        return Node(operator.sub, self, tree)
+    def __sub__(self, node):
+        return Node(operator.sub, self, node)
 
-    def __mul__(self, tree):
-        return Node(operator.mul, self, tree)
+    def __mul__(self, node):
+        return Node(operator.mul, self, node)
 
-    def __truediv__(self, tree):
-        return Node(operator.truediv, self, tree)
+    def __truediv__(self, node):
+        return Node(operator.truediv, self, node)
 
-    def __call__(self, x):
-        value = self._calcTree(x)
-        return round(value, 5)
 
-    def _calcTree(self, x):
-        tree = deepcopy(self)
-        if tree.right is None and tree.left is None:
-            if str.isalpha(tree.value):
-                tree.value = x
-            return float(tree.value)
-        elif tree.right is None:
-            return tree.value(calcTree(tree.left, x))
+class Tree:
+    def __init__(self, expression='', node=None):
+        self.expression = expression
+        if node is None:
+            self.node = self._getAST()
         else:
-            return tree.value(calcTree(tree.left, x), calcTree(tree.right, x))
+            self.node = node
 
-
-
-class Tree(Node):
-    def __init__(self, expression):
+    def _getAST(self):
         stack = []
         result = []
-        tokenList = expression.split()
+        tokenList = self.expression.split()
         for token in tokenList:
             if str.isalpha(token) and token not in Functions or str.isdigit(token):
                 node = Node(token)
@@ -110,15 +101,48 @@ class Tree(Node):
                 left = result.pop()
                 node = Node(Functions[op]['value'], left, right)
                 result.append(node)
-        node = result.pop()
-        self.value = node.value
-        self.right = node.right
-        self.left = node.left
-        self.expression = expression
+        try:
+            return result.pop()
+        except IndexError:
+            return Node(None)
 
     def __str__(self):
         return self.expression
 
+    def __add__(self, tree):
+        node = self.node + tree.node
+        expression = '( ' + self.expression + ' ) + ( ' + tree.expression + ' )'
+        return Tree(expression, node)
+
+    def __sub__(self, tree):
+        node = self.node - tree.node
+        expression = '( ' + self.expression + ' ) - ( ' + tree.expression + ' )'
+        return Tree(expression, node)
+
+    def __mul__(self, tree):
+        node = self.node * tree.node
+        expression = '( ' + self.expression + ' ) * ( ' + tree.expression + ' )'
+        return Tree(expression, node)
+
+    def __truediv__(self, tree):
+        node = self.node / tree.node
+        expression = '( ' + self.expression + ' ) / ( ' + tree.expression + ' )'
+        return Tree(expression, node)
+
+    def __call__(self, x):
+        value = self._calcTree(x)
+        return round(value, 5)
+
+    def _calcTree(self, x):
+        tree = deepcopy(self.node)
+        if tree.right is None and tree.left is None:
+            if str.isalpha(tree.value):
+                tree.value = x
+            return float(tree.value)
+        elif tree.right is None:
+            return tree.value(calcTree(tree.left, x))
+        else:
+            return tree.value(calcTree(tree.left, x), calcTree(tree.right, x))
 
 
 def makeTree(expression):
@@ -244,7 +268,7 @@ y = f + g
 u = f - g
 
 
-print(y(5))
+print(y, " ", y(5))
 print(y(6))
 print(y(16))
 print(y(66))
