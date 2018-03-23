@@ -18,6 +18,7 @@ Functions = {
     'cos': {'value': math.cos, 'argNum': 1},
     'sin': {'value': math.sin, 'argNum': 1},
     'tan': {'value': math.tan, 'argNum': 1},
+    
 }
 
 Delimiters = [
@@ -42,6 +43,22 @@ class Node:
 
     def __truediv__(self, node):
         return Node(operator.truediv, self, node)
+
+    '''
+    TODO
+    '''
+    def __copy__(self):
+        pass
+
+    def calcTree(self, x):
+        if self.right is None and self.left is None:
+            if str.isalpha(self.value):
+                return x
+            return float(self.value)
+        elif self.right is None:
+            return self.value(self.left.calcTree(x))
+        else:
+            return self.value(self.left.calcTree(x), self.right.calcTree(x))
 
 
 class Tree:
@@ -110,170 +127,157 @@ class Tree:
         return self.expression
 
     def __add__(self, tree):
-        node = self.node + tree.node
+        first, second = deepcopy(self.node), deepcopy(tree.node)
+        node = first + second
         expression = '( ' + self.expression + ' ) + ( ' + tree.expression + ' )'
         return Tree(expression, node)
 
     def __sub__(self, tree):
-        node = self.node - tree.node
+        first, second = deepcopy(self.node), deepcopy(tree.node)
+        node = first - second
         expression = '( ' + self.expression + ' ) - ( ' + tree.expression + ' )'
         return Tree(expression, node)
 
     def __mul__(self, tree):
-        node = self.node * tree.node
+        first, second = deepcopy(self.node), deepcopy(tree.node)
+        node = first * second
         expression = '( ' + self.expression + ' ) * ( ' + tree.expression + ' )'
         return Tree(expression, node)
 
     def __truediv__(self, tree):
-        node = self.node / tree.node
+        first, second = deepcopy(self.node), deepcopy(tree.node)
+        node = first / second
         expression = '( ' + self.expression + ' ) / ( ' + tree.expression + ' )'
         return Tree(expression, node)
 
     def __call__(self, x):
-        value = self._calcTree(x)
+        value = self.node.calcTree(x)
         return round(value, 5)
 
-    def _calcTree(self, x):
-        tree = deepcopy(self.node)
-        if tree.right is None and tree.left is None:
-            if str.isalpha(tree.value):
-                tree.value = x
-            return float(tree.value)
-        elif tree.right is None:
-            return tree.value(calcTree(tree.left, x))
-        else:
-            return tree.value(calcTree(tree.left, x), calcTree(tree.right, x))
+# def makeTree(expression):
+#     stack = []
+#     result = []
+#
+#     tokenList = expression.split()
+#     for token in tokenList:
+#         if str.isalpha(token) and token not in Functions or str.isdigit(token):
+#             node = Node(token)
+#             result.append(node)
+#         elif token in Functions:
+#             stack.append(token)
+#         elif token in Operators:
+#             while stack and (stack[-1] in Operators) and (Operators[stack[-1]]['priority'] > Operators[token]['priority']):
+#                 op = stack.pop()
+#                 right = result.pop()
+#                 left = result.pop()
+#                 node = Node(Operators[op]['value'], left, right)
+#                 result.append(node)
+#             stack.append(token)
+#         elif token is '(':
+#             stack.append(token)
+#         elif token is ')':
+#             while stack[-1] is not '(' and stack:
+#                 op = stack.pop()
+#                 if op in Operators:
+#                     right = result.pop()
+#                     left = result.pop()
+#                     node = Node(Operators[op]['value'], left, right)
+#                     result.append(node)
+#                 elif op in Functions:
+#                     right = None
+#                     left = result.pop()
+#                     node = Node(Functions[op]['value'], left, right)
+#                     result.append(node)
+#                 if not stack:
+#                     raise ValueError(" пропущена открывающая скобка")
+#             stack.pop()
+#             if stack and stack[-1] in Functions:
+#                 op = stack.pop()
+#                 right = None
+#                 left = result.pop()
+#                 node = Node(Functions[op]['value'], left, right)
+#                 result.append(node)
+#     while stack:
+#         op = stack.pop()
+#         if op in Operators:
+#             right = result.pop()
+#             left = result.pop()
+#             node = Node(Operators[op]['value'], left, right)
+#             result.append(node)
+#         elif op in Functions:
+#             right = None
+#             left = result.pop()
+#             node = Node(Functions[op]['value'], left, right)
+#             result.append(node)
+#     return result.pop()
+#
+#
+# def calcTree(tree, x):
+#     if tree.right is None and tree.left is None:
+#         if str.isalpha(tree.value):
+#             tree.value = x
+#         return float(tree.value)
+#     elif tree.right is None:
+#         return tree.value(calcTree(tree.left, x))
+#     else:
+#         return tree.value(calcTree(tree.left, x), calcTree(tree.right, x))
+#
+# class MathFunctionClass:
+#     def __init__(self, expression=None):
+#         result = []
+#         stack = []
+#
+#         if expression is not None:
+#             tokenList = expression.split(" ")
+#             for token in tokenList:
+#                 if str.isalpha(token) and token not in Functions or str.isdigit(token):
+#                     result.append(token)
+#                 elif token in Functions:
+#                     stack.append(token)
+#                 elif token in Delimiters:
+#                     if '(' not in stack:
+#                         raise ValueError("Либо пропущена открывающая скобка, либо пропущен разделитель")
+#                     while stack[-1] is not '(' and len(stack) != 0:
+#                         result.append(stack.pop())
+#                 elif token in Operators:
+#                     if len(stack) != 0:
+#                         while (stack[-1] in Operators) and (Operators[stack[-1]] > Operators[token]):
+#                             result.append(stack.pop())
+#                     stack.append(token)
+#                 elif token is '(':
+#                     stack.append(token)
+#                 elif token is ')':
+#                     while stack[-1] is not '(' and len(stack) != 0:
+#                         result.append(stack.pop())
+#                         if len(stack) == 0:
+#                             raise ValueError(" пропущена открывающая скобка")
+#                     stack.pop()
+#             while len(stack) != 0:
+#                 result.append(stack.pop())
+#
+#         self.postfix = result
+#         self.expression = expression
+#
+#     # @property
+#     def __str__(self):
+#         return ' '.join(self.postfix)
+#
+#     def __add__(self, other):
+#         buf = MathFunctionClass()
+#         buf.postfix.extend(self.postfix)
+#         buf.postfix.extend(other.postfix)
+#         buf.postfix.append('+')
+#         return buf
 
 
-def makeTree(expression):
-    stack = []
-    result = []
-
-    tokenList = expression.split()
-    for token in tokenList:
-        if str.isalpha(token) and token not in Functions or str.isdigit(token):
-            node = Node(token)
-            result.append(node)
-        elif token in Functions:
-            stack.append(token)
-        elif token in Operators:
-            while stack and (stack[-1] in Operators) and (Operators[stack[-1]]['priority'] > Operators[token]['priority']):
-                op = stack.pop()
-                right = result.pop()
-                left = result.pop()
-                node = Node(Operators[op]['value'], left, right)
-                result.append(node)
-            stack.append(token)
-        elif token is '(':
-            stack.append(token)
-        elif token is ')':
-            while stack[-1] is not '(' and stack:
-                op = stack.pop()
-                if op in Operators:
-                    right = result.pop()
-                    left = result.pop()
-                    node = Node(Operators[op]['value'], left, right)
-                    result.append(node)
-                elif op in Functions:
-                    right = None
-                    left = result.pop()
-                    node = Node(Functions[op]['value'], left, right)
-                    result.append(node)
-                if not stack:
-                    raise ValueError(" пропущена открывающая скобка")
-            stack.pop()
-            if stack and stack[-1] in Functions:
-                op = stack.pop()
-                right = None
-                left = result.pop()
-                node = Node(Functions[op]['value'], left, right)
-                result.append(node)
-    while stack:
-        op = stack.pop()
-        if op in Operators:
-            right = result.pop()
-            left = result.pop()
-            node = Node(Operators[op]['value'], left, right)
-            result.append(node)
-        elif op in Functions:
-            right = None
-            left = result.pop()
-            node = Node(Functions[op]['value'], left, right)
-            result.append(node)
-    return result.pop()
-
-
-def calcTree(tree, x):
-    if tree.right is None and tree.left is None:
-        if str.isalpha(tree.value):
-            tree.value = x
-        return float(tree.value)
-    elif tree.right is None:
-        return tree.value(calcTree(tree.left, x))
-    else:
-        return tree.value(calcTree(tree.left, x), calcTree(tree.right, x))
-
-class MathFunctionClass:
-    def __init__(self, expression=None):
-        result = []
-        stack = []
-
-        if expression is not None:
-            tokenList = expression.split(" ")
-            for token in tokenList:
-                if str.isalpha(token) and token not in Functions or str.isdigit(token):
-                    result.append(token)
-                elif token in Functions:
-                    stack.append(token)
-                elif token in Delimiters:
-                    if '(' not in stack:
-                        raise ValueError("Либо пропущена открывающая скобка, либо пропущен разделитель")
-                    while stack[-1] is not '(' and len(stack) != 0:
-                        result.append(stack.pop())
-                elif token in Operators:
-                    if len(stack) != 0:
-                        while (stack[-1] in Operators) and (Operators[stack[-1]] > Operators[token]):
-                            result.append(stack.pop())
-                    stack.append(token)
-                elif token is '(':
-                    stack.append(token)
-                elif token is ')':
-                    while stack[-1] is not '(' and len(stack) != 0:
-                        result.append(stack.pop())
-                        if len(stack) == 0:
-                            raise ValueError(" пропущена открывающая скобка")
-                    stack.pop()
-            while len(stack) != 0:
-                result.append(stack.pop())
-
-        self.postfix = result
-        self.expression = expression
-
-    # @property
-    def __str__(self):
-        return ' '.join(self.postfix)
-
-    def __add__(self, other):
-        buf = MathFunctionClass()
-        buf.postfix.extend(self.postfix)
-        buf.postfix.extend(other.postfix)
-        buf.postfix.append('+')
-        return buf
-
-
-f = Tree("( cos ( x ) ) ^ 2")
-g = Tree("( sin ( x ) ) ^ 2")
-
-y = f + g
-u = f - g
-
-
-print(y, " ", y(5))
-print(y(6))
-print(y(16))
-print(y(66))
-
-print(u(3.1415))
-print(u(6))
-print(u(16))
-print(u(66))
+if __name__ == "__main__":
+    f = Tree("cos ( x )")
+    g = Tree("sin ( x )")
+    y = f + g
+    u = f - g
+    n = y * u
+    i = n * n
+    print(y(3.1415))
+    print(u(3.1415))
+    print(n(3.1415))
+    print(i, " ", i(3.14150))
