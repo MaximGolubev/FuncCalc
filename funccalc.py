@@ -173,6 +173,14 @@ def sqrt(x: Tree):
     return Tree(expression=expression, node=node)
 
 
+def cos(x : Tree):
+    node = Node(value=math.cos)
+    node.left = x.node
+    node.right = None
+    expression = "cos (" + x.expression + " )"
+    return Tree(expression=expression, node=node)
+
+
 # def makeTree(expression):
 #     stack = []
 #     result = []
