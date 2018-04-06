@@ -47,6 +47,7 @@ class Node:
     '''
     TODO
     '''
+
     def __copy__(self):
         pass
 
@@ -132,6 +133,9 @@ class Tree:
     def __str__(self):
         return self.expression
 
+    def __repr__(self):
+        return self.expression
+
     def __add__(self, tree):
         first, second = deepcopy(self.node), deepcopy(tree.node)
         node = first + second
@@ -159,6 +163,15 @@ class Tree:
     def __call__(self, x):
         value = self.node.calcTree(x)
         return round(value, 5)
+
+
+def sqrt(x: Tree):
+    node = Node(value=math.sqrt)
+    node.left = x.node
+    node.right = None
+    expression = "sqrt (" + x.expression + " )"
+    return Tree(expression=expression, node=node)
+
 
 # def makeTree(expression):
 #     stack = []
