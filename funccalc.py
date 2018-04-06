@@ -51,6 +51,9 @@ class Node:
     def __copy__(self):
         pass
 
+    def __neg__(self):
+        return Node(operator.sub, Node('0'), self)
+
     def calcTree(self, x):
         if self.right is None and self.left is None:
             if str.isalpha(self.value):
@@ -158,6 +161,12 @@ class Tree:
         first, second = deepcopy(self.node), deepcopy(tree.node)
         node = first / second
         expression = '( ' + self.expression + ' ) / ( ' + tree.expression + ' )'
+        return Tree(expression, node)
+
+    def __neg__(self):
+        buf = deepcopy(self.node)
+        node = -buf
+        expression = "- " + self.expression
         return Tree(expression, node)
 
     def __call__(self, x):
