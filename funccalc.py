@@ -115,7 +115,12 @@ class Tree:
                     if not stack:
                         raise ValueError(" пропущена открывающая скобка")
                 stack.pop()
+                if stack and stack[-1] in Functions:
+                    node = Node(Functions[stack.pop()]['value'], result.pop(), None)
+                    result.append(node)
             prevToken = token
+        if '(' in stack:
+            raise ValueError("Несбалансированные скобки '( )' ")
         while stack:
             op = stack.pop()
             if op in Operators:
@@ -166,7 +171,7 @@ class Tree:
     def __neg__(self):
         buf = deepcopy(self.node)
         node = -buf
-        expression = "- " + self.expression
+        expression = "- ( " + self.expression + " )"
         return Tree(expression, node)
 
     def __call__(self, x):
@@ -182,7 +187,7 @@ def sqrt(x: Tree):
     return Tree(expression=expression, node=node)
 
 
-def cos(x : Tree):
+def cos(x: Tree):
     node = Node(value=math.cos)
     node.left = x.node
     node.right = None
