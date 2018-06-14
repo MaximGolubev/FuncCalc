@@ -1,1 +1,1 @@
-C:/Python36/python.exe -i imports.py
+python.exe -i imports.py
