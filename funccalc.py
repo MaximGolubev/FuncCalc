@@ -245,6 +245,14 @@ def cos(x: Tree):
     return Tree(expr=expr, node=node)
 
 
+def sin(x: Tree):
+    node = Node(value=math.cos)
+    node.left = x.node
+    node.right = None
+    expr = "sin (" + x.expression + " )"
+    return Tree(expr=expr, node=node)
+
+
 def logn(x):
     return math.log(x, base=math.e)
 
@@ -289,6 +297,13 @@ def diff(tree: Tree):
             return diff(Tree(node=tree.node.right)) * Tree(node=tree.node) * ln(Tree(node=tree.node.left))
         elif not first and not second:
             return Tree('0', node=Node('0'))
+    elif tree.node.value is math.sqrt:
+        return diff(Tree(node=tree.node.left) ** Tree(node=Node('0.5')))
+    elif tree.node.value is math.cos:
+        return -sin(Tree(node=tree.node.left)) * diff(Tree(node=tree.node.left))
+    elif tree.node.value is math.sin:
+        return cos(Tree(node=tree.node.left)) * diff(Tree(node=tree.node.left))
+
 
     elif str.isalpha(tree.node.value):
         return Tree('1', node=Node('1'))
@@ -297,7 +312,7 @@ def diff(tree: Tree):
 
 
 if __name__ == "__main__":
-    f = Tree("x ** 2 + 2 ** x")
+    f = Tree("sqrt ( sin ( 2 * x ) )")
     g = diff(f)
     print(g)
     print(g.node.isContainsVar())
