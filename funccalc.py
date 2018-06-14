@@ -7,7 +7,7 @@ Operators = {
     '-': {'value': operator.sub, 'priority': 1},
     '*': {'value': operator.mul, 'priority': 2},
     '/': {'value': operator.truediv, 'priority': 2},
-    '^': {'value': operator.pow, 'priority': 3},
+    '**': {'value': operator.pow, 'priority': 3},
 }
 
 '''
@@ -54,6 +54,9 @@ class Node:
     def __neg__(self):
         return Node(operator.sub, Node('0'), self)
 
+    def __pow__(self, power, modulo=None):
+        return Node(operator.pow, self, power)
+
     def calcTree(self, x):
         if self.right is None and self.left is None:
             if str.isalpha(self.value):
@@ -64,13 +67,54 @@ class Node:
         else:
             return self.value(self.left.calcTree(x), self.right.calcTree(x))
 
+    def isContainsVar(self):
+        if self.right is None and self.left is None:
+            if str.isalpha(self.value):
+                return True
+            return False
+        elif self.right is None:
+            return self.left.isContainsVar()
+        else:
+            return self.left.isContainsVar() or self.right.isContainsVar()
+
+
+def expression(node: Node):
+    expr = ''
+
+    if node.right is None and node.left is None:
+        return node.value
+    elif node.right is None:
+        func_name = ''
+        if node.value is math.sqrt:
+            func_name = 'sqrt '
+        elif node.value is math.cos:
+            func_name = ' cos '
+        elif node.value is math.sin:
+            func_name = ' sin '
+        elif node.value is logn:
+            func_name = ' ln '
+        return func_name + ' ( ' + expression(node.left)
+    else:
+        func_name = ''
+        if node.value is operator.add:
+            func_name = ' + '
+        elif node.value is operator.mul:
+            func_name = ' * '
+        elif node.value is operator.truediv:
+            func_name = ' / '
+        elif node.value is operator.sub:
+            func_name = ' - '
+        elif node.value is operator.pow:
+            func_name = ' ** '
+        return '( ' + expression(node.left) + func_name + expression(node.right) + ' )'
 
 class Tree:
-    def __init__(self, expression='', node=None):
-        self.expression = expression
+    def __init__(self, expr='', node=None):
         if node is None:
+            self.expression = expr
             self.node = self._getAST()
         else:
+            self.expression = expression(node)
             self.node = node
 
     def _getAST(self):
@@ -174,6 +218,12 @@ class Tree:
         expression = "- ( " + self.expression + " )"
         return Tree(expression, node)
 
+    def __pow__(self, tree, modulo=None):
+        first, second = deepcopy(self.node), deepcopy(tree.node)
+        node = first ** second
+        expr = '( ' + self.expression + ' ) ** ( ' + tree.expression + ' )'
+        return Tree(expr, node)
+
     def __call__(self, x):
         value = self.node.calcTree(x)
         return round(value, 5)
@@ -183,136 +233,71 @@ def sqrt(x: Tree):
     node = Node(value=math.sqrt)
     node.left = x.node
     node.right = None
-    expression = "sqrt (" + x.expression + " )"
-    return Tree(expression=expression, node=node)
+    expr = "sqrt (" + x.expression + " )"
+    return Tree(expr=expr, node=node)
 
 
 def cos(x: Tree):
     node = Node(value=math.cos)
     node.left = x.node
     node.right = None
-    expression = "cos (" + x.expression + " )"
-    return Tree(expression=expression, node=node)
+    expr = "cos (" + x.expression + " )"
+    return Tree(expr=expr, node=node)
 
 
-# def makeTree(expression):
-#     stack = []
-#     result = []
-#
-#     tokenList = expression.split()
-#     for token in tokenList:
-#         if str.isalpha(token) and token not in Functions or str.isdigit(token):
-#             node = Node(token)
-#             result.append(node)
-#         elif token in Functions:
-#             stack.append(token)
-#         elif token in Operators:
-#             while stack and (stack[-1] in Operators) and (Operators[stack[-1]]['priority'] > Operators[token]['priority']):
-#                 op = stack.pop()
-#                 right = result.pop()
-#                 left = result.pop()
-#                 node = Node(Operators[op]['value'], left, right)
-#                 result.append(node)
-#             stack.append(token)
-#         elif token is '(':
-#             stack.append(token)
-#         elif token is ')':
-#             while stack[-1] is not '(' and stack:
-#                 op = stack.pop()
-#                 if op in Operators:
-#                     right = result.pop()
-#                     left = result.pop()
-#                     node = Node(Operators[op]['value'], left, right)
-#                     result.append(node)
-#                 elif op in Functions:
-#                     right = None
-#                     left = result.pop()
-#                     node = Node(Functions[op]['value'], left, right)
-#                     result.append(node)
-#                 if not stack:
-#                     raise ValueError(" пропущена открывающая скобка")
-#             stack.pop()
-#             if stack and stack[-1] in Functions:
-#                 op = stack.pop()
-#                 right = None
-#                 left = result.pop()
-#                 node = Node(Functions[op]['value'], left, right)
-#                 result.append(node)
-#     while stack:
-#         op = stack.pop()
-#         if op in Operators:
-#             right = result.pop()
-#             left = result.pop()
-#             node = Node(Operators[op]['value'], left, right)
-#             result.append(node)
-#         elif op in Functions:
-#             right = None
-#             left = result.pop()
-#             node = Node(Functions[op]['value'], left, right)
-#             result.append(node)
-#     return result.pop()
-#
-#
-# def calcTree(tree, x):
-#     if tree.right is None and tree.left is None:
-#         if str.isalpha(tree.value):
-#             tree.value = x
-#         return float(tree.value)
-#     elif tree.right is None:
-#         return tree.value(calcTree(tree.left, x))
-#     else:
-#         return tree.value(calcTree(tree.left, x), calcTree(tree.right, x))
-#
-# class MathFunctionClass:
-#     def __init__(self, expression=None):
-#         result = []
-#         stack = []
-#
-#         if expression is not None:
-#             tokenList = expression.split(" ")
-#             for token in tokenList:
-#                 if str.isalpha(token) and token not in Functions or str.isdigit(token):
-#                     result.append(token)
-#                 elif token in Functions:
-#                     stack.append(token)
-#                 elif token in Delimiters:
-#                     if '(' not in stack:
-#                         raise ValueError("Либо пропущена открывающая скобка, либо пропущен разделитель")
-#                     while stack[-1] is not '(' and len(stack) != 0:
-#                         result.append(stack.pop())
-#                 elif token in Operators:
-#                     if len(stack) != 0:
-#                         while (stack[-1] in Operators) and (Operators[stack[-1]] > Operators[token]):
-#                             result.append(stack.pop())
-#                     stack.append(token)
-#                 elif token is '(':
-#                     stack.append(token)
-#                 elif token is ')':
-#                     while stack[-1] is not '(' and len(stack) != 0:
-#                         result.append(stack.pop())
-#                         if len(stack) == 0:
-#                             raise ValueError(" пропущена открывающая скобка")
-#                     stack.pop()
-#             while len(stack) != 0:
-#                 result.append(stack.pop())
-#
-#         self.postfix = result
-#         self.expression = expression
-#
-#     # @property
-#     def __str__(self):
-#         return ' '.join(self.postfix)
-#
-#     def __add__(self, other):
-#         buf = MathFunctionClass()
-#         buf.postfix.extend(self.postfix)
-#         buf.postfix.extend(other.postfix)
-#         buf.postfix.append('+')
-#         return buf
+def logn(x):
+    return math.log(x, base=math.e)
+
+
+def ln(x: Tree):
+    node = Node(value=logn)
+    node.left = x.node
+    node.right = None
+    expr = 'ln ( ' + x.expression + ' )'
+    return Tree(expr=expr, node=node)
+
+
+def diff(tree: Tree):
+    if tree.node.value is operator.add:
+        return diff(Tree(node=tree.node.left)) + diff(Tree(node=tree.node.right))
+    elif tree.node.value is operator.sub:
+        return diff(Tree(node=tree.node.left)) - diff(Tree(node=tree.node.right))
+    elif tree.node.value is operator.mul:
+        first = tree.node.left.isContainsVar()
+        second = tree.node.right.isContainsVar()
+        if first and second:
+            return diff(Tree(node=tree.node.left)) * Tree(node=tree.node.right) + \
+                   diff(Tree(node=tree.node.right)) * Tree(node=tree.node.left)
+        elif first and not second:
+            return diff(Tree(node=tree.node.left)) * Tree(node=tree.node.right)
+        elif not first and second:
+            return diff(Tree(node=tree.node.right)) * Tree(node=tree.node.left)
+        elif not first and not second:
+            return Tree('0', node=Node('0'))
+    elif tree.node.value is operator.truediv:
+        return (diff(tree.node.left) * tree.node.right - diff(tree.node.right) * tree.node.left) / \
+               (tree.node.right * tree.node.right)
+    elif tree.node.value is operator.pow:
+        first = tree.node.left.isContainsVar()
+        second = tree.node.right.isContainsVar()
+        if first and second:
+            return tree * (diff(Tree(node=tree.node.right)) * ln(Tree(node=tree.node.left)) +
+                           Tree(node=tree.node.right) * diff(Tree(node=tree.node.left)) / Tree(node=tree.node.left))
+        elif first and not second:
+            return diff(Tree(node=tree.node.left)) * Tree(node=tree.node.right) * (Tree(node=tree.node.left) ** (Tree(node=tree.node.right) - Tree(node=Node('1'))))
+        elif not first and second:
+            return diff(Tree(node=tree.node.right)) * Tree(node=tree.node) * ln(Tree(node=tree.node.left))
+        elif not first and not second:
+            return Tree('0', node=Node('0'))
+
+    elif str.isalpha(tree.node.value):
+        return Tree('1', node=Node('1'))
+    elif str.isalnum(tree.node.value):
+        return Tree('0', node=Node('0'))
 
 
 if __name__ == "__main__":
-    f = Tree("- x")
-    g = Tree("sin ( - x )")
-    print(f)
-    print(g(3.14 / 2))
+    f = Tree("x ** 2 + 2 ** x")
+    g = diff(f)
+    print(g)
+    print(g.node.isContainsVar())
